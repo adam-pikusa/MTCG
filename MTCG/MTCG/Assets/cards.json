@@ -1,0 +1,55 @@
+[
+    {
+        "params": [ "Goblin", "Monster", "Normal", 10],
+        "components": [
+            {
+                "component_type": "WeakAgainstComponent",
+                "name": "Dragon"
+            }
+        ]
+    },
+    {
+        "params": [ "Wizzard", "Monster", "Water", 25 ],
+        "components": [
+            {
+                "component_type": "ImmuneToComponent",
+                "name": "Ork"
+            }
+        ]
+    },
+    {
+        "params": [ "Ork", "Monster", "Normal", 40 ],
+        "components": []
+    },
+    {
+        "params": [ "Knight", "Monster", "Normal", 30 ],
+        "components": [
+            {
+                "component_type": "WeakAgainstComponent",
+                "name": "WaterSpell"
+            }
+        ]
+    },
+    {
+        "params": [ "Kraken", "Monster", "Water", 100 ],
+        "components": [
+            {
+                "component_type": "ImmuneToComponent",
+                "name": "Spell"
+            }
+        ]
+    },
+    {
+        "params": [ "Dragon", "Monster", "Normal", 30 ],
+        "components": []
+    },
+    {
+        "params": [ "Elf", "Monster", "Fire", 15 ],
+        "components": [
+            {
+                "component_type": "ImmuneToComponent",
+                "name": "Dragon"
+            }
+        ]
+    }
+]
