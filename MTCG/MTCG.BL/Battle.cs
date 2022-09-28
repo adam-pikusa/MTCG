@@ -5,6 +5,58 @@ namespace MTCG.BL
 {
     public static class Battle
     {
+        static long Attack(Card attacker, Card defender)
+        {
+            foreach (var comp in attacker.Components)
+            {
+                if (comp is WeakAgainstComponent)
+                {
+                    var weakness = (WeakAgainstComponent)comp;
+
+                    if (weakness.Name != null && weakness.Name != defender.Name) continue;
+                    if (weakness.Element != null && weakness.Element != defender.Element) continue;
+
+                    Console.WriteLine($"{attacker} is weak against {defender}! Loses!");
+                    return 0;
+                }
+            }
+
+            foreach (var comp in defender.Components)
+            {
+                if (comp is ImmuneToComponent)
+                {
+                    var immunity = (ImmuneToComponent)comp;
+
+                    if (immunity.Name != null && immunity.Name != attacker.Name) continue;
+                    if (immunity.Element != null && immunity.Element != attacker.Element) continue;
+                    
+                    Console.WriteLine($"{attacker} cannot damage {defender}! Loses!");
+                    return 0;
+                }
+            }
+
+            long elementModifiedDamage = attacker.Damage;
+
+            if (attacker.Type == Card.CardType.Spell || defender.Type == Card.CardType.Spell)
+                switch (attacker.Element)
+                {
+                    case Card.ElementType.Normal:
+                        if (defender.Element == Card.ElementType.Water) elementModifiedDamage *= 2;
+                        else if (defender.Element == Card.ElementType.Fire) elementModifiedDamage /= 2;
+                        break;
+                    case Card.ElementType.Fire:
+                        if (defender.Element == Card.ElementType.Normal) elementModifiedDamage *= 2;
+                        else if (defender.Element == Card.ElementType.Water) elementModifiedDamage /= 2;
+                        break;
+                    case Card.ElementType.Water:
+                        if (defender.Element == Card.ElementType.Fire) elementModifiedDamage *= 2;
+                        else if (defender.Element == Card.ElementType.Normal) elementModifiedDamage /= 2;
+                        break;
+                }
+
+            return elementModifiedDamage;
+        }
+
         public static void Fight(Deck deckA, Deck deckB)
         {
             var rand = new Random();
@@ -28,19 +80,12 @@ namespace MTCG.BL
                 return;
             }
 
-            foreach (var comp in a.Components)
-            {
-                if (comp is WeakAgainstComponent)
-                {
+            Console.WriteLine("First iteration of combat");
+            var fight_result_1 = Attack(a, b);
+            Console.WriteLine("Second iteration of combat");
+            var fight_result_2 = Attack(b, a);
 
-                }
-                else if (comp is ImmuneToComponent)
-                {
-
-                }
-            }
-
-            Console.WriteLine("calculating damage...");
+            Console.WriteLine($"result a->b: {fight_result_1}\nresult b->a: {fight_result_2}");
         }
     }
 }

@@ -21,3 +21,4 @@ var deckB = new Deck() { dragon };
 var deckC = new Deck() { fireElf };
 
 Battle.Fight(deckA, deckB);
+Battle.Fight(deckB, deckC);

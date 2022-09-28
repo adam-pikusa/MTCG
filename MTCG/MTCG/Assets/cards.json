@@ -26,7 +26,8 @@
         "components": [
             {
                 "component_type": "WeakAgainstComponent",
-                "name": "WaterSpell"
+                "name": "Spell",
+                "element":  "Water"
             }
         ]
     },
@@ -51,5 +52,9 @@
                 "name": "Dragon"
             }
         ]
+    },
+    {
+        "params": [ "Spell", "Spell", "Fire", 23 ],
+        "components": []
     }
 ]
