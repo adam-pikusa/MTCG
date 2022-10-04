@@ -56,5 +56,9 @@
     {
         "params": [ "Spell", "Spell", "Fire", 23 ],
         "components": []
+    },
+    {
+        "params": [ "Spell", "Spell", "Water", 5 ],
+        "components": []
     }
 ]
