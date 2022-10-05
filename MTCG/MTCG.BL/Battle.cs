@@ -57,7 +57,7 @@ namespace MTCG.BL
             return elementModifiedDamage;
         }
 
-        public static void Fight(Deck deckA, Deck deckB)
+        public static int Fight(Deck deckA, Deck deckB)
         {
             var rand = new Random();
             var a = deckA[rand.Next(deckA.Count)];
@@ -68,7 +68,7 @@ namespace MTCG.BL
             if (a == null && b == null)
             {
                 Console.WriteLine("Draw!");
-                return;
+                return 0;
             }
 
             if (a == null || b == null)
@@ -77,7 +77,7 @@ namespace MTCG.BL
                     a == null ?
                     "B won because a has no more cards in deck!" :
                     "A won because b has no more cards in deck!");
-                return;
+                return a == null ? 2 : 1;
             }
 
             Console.WriteLine("First iteration of combat");
@@ -86,6 +86,10 @@ namespace MTCG.BL
             var fight_result_2 = Attack(b, a);
 
             Console.WriteLine($"result a->b: {fight_result_1}\nresult b->a: {fight_result_2}");
+
+            if (fight_result_1 == fight_result_2) return 0;
+
+            return fight_result_1 > fight_result_2 ? 1 : 2;
         }
     }
 }

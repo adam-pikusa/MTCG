@@ -1,15 +1,16 @@
 MTCG/.vs
+
 MTCG/MTCG/obj
 MTCG/MTCG/bin
 
-MTCG/.vs
 MTCG/MTCG.BL/obj
 MTCG/MTCG.BL/bin
 
-MTCG/.vs
 MTCG/MTCG.DAL/obj
 MTCG/MTCG.DAL/bin
 
-MTCG/.vs
 MTCG/MTCG.Models/obj
 MTCG/MTCG.Models/bin
+
+MTCG/MTCG.Test/obj
+MTCG/MTCG.Test/bin
