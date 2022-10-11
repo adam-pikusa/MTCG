@@ -51,8 +51,8 @@ namespace MTCG.Test
         //The Kraken is immune against spells.
         //The FireElves know Dragons since they were little and can evade their attacks. 
         
-        [Test]
         [TestCase("Gob", "Dra", 2)]
+        [TestCase("Dra", "Gob", 1)]
         [TestCase("Wiz", "Ork", 1)]
         [TestCase("Kni", "WSp", 2)]
         [TestCase("Kni", "FSp", 1)]
