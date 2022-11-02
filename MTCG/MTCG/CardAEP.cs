@@ -24,7 +24,17 @@ namespace MTCG
         }
 
         public string Delete(string route) => throw new NotImplementedException();
-        public string Patch(string route) => throw new NotImplementedException();
-        public string Post(string route) => throw new NotImplementedException();
+
+        public string Post(string route, string body)
+        {
+            Console.WriteLine("[{0}]Received route {1} and body({2}):{3}", Thread.CurrentThread.ManagedThreadId, route, body.Length, body);
+
+            return HTTPHelper.Response404;
+        }
+
+        public string Patch(string route, string body)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
