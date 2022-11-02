@@ -1,7 +1,11 @@
-﻿namespace MTCG.Models.Components
+﻿using Newtonsoft.Json;
+
+namespace MTCG.Models.Components
 {
     public class WeakAgainstComponent : Component
     {
+        [JsonProperty]
+        const string ComponentType = nameof(WeakAgainstComponent);
         public string? Name { get; private set; }
         public Card.ElementType? Element { get; private set; }
 

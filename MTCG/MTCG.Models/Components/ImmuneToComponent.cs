@@ -1,7 +1,12 @@
-﻿namespace MTCG.Models.Components
+﻿using Newtonsoft.Json;
+
+namespace MTCG.Models.Components
 {
     public class ImmuneToComponent : Component
     {
+        [JsonProperty]
+        const string ComponentType = nameof(ImmuneToComponent);
+
         public string? Name { get; private set; }
         public Card.ElementType? Element { get; private set; }
 
