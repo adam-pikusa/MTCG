@@ -1,50 +1,9 @@
-﻿using MTCG.BL;
-using Newtonsoft.Json.Linq;
+﻿using MTCG;
 using System.Net.Sockets;
 
-const string assetFile = @"Assets/cards.json";
-
-string ResponseError(string errorCode)
-{
-    string htmlPayload =
-        "<!DOCTYPE html>" +
-        "<html>" +
-        "<head>" +
-        $"<title>{errorCode}</title>" +
-        "</head>" +
-        $"<body><h1>{errorCode}</h1></body>" +
-        "</html>";
-
-    string response =
-@$"HTTP/1.1 {errorCode}
-Content-Type: text/html
-Content-Length: {htmlPayload.Length}
-Connection: Close
-
-{htmlPayload}";
-
-    return response;
-}
-
-string Response400 = ResponseError("400 Bad Request");
-string Response401 = ResponseError("401 Unauthorized");
-string Response404 = ResponseError("404 Not Found");
-string Response500 = ResponseError("500 Internal Server Error");
-
-string ResponseJson(string jsonPayload)
-{
-    string response =
-@$"HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Content-Length: {jsonPayload.Length}
-Connection: Close
-
-{jsonPayload}";
-
-    return response;
-}
-
-var cards = CardDeserializer.deserializeAllCards(File.ReadAllText(assetFile));
+Dictionary<string, IAPIEndPoint> apis = new();
+var cardApi = new CardAEP();
+apis.Add(cardApi.Route(), cardApi);
 
 string HandleGet(string route)
 {
@@ -52,32 +11,11 @@ string HandleGet(string route)
 
     var parts = route.Substring(1).Split('/');
 
-    if (parts.Length != 2) return Response400;
+    if (parts.Length < 1) return HTTPHelper.Response400;
 
-    object responseObject;
+    if (!apis.TryGetValue(parts[0], out var api)) return HTTPHelper.Response404;
 
-    switch (parts[0])
-    {
-        case "double": 
-            responseObject = new { 
-                request_route = route, 
-                result = int.Parse(parts[1]) * 2 }; 
-            break;
-
-        case "halve": 
-            responseObject = new { 
-                request_route = route, 
-                result = int.Parse(parts[1]) / 2 }; 
-            break;
-
-        case "cards":
-            responseObject = cards[int.Parse(parts[1])];
-            break;
-
-        default: return Response404;
-    }
-
-    return ResponseJson(JObject.FromObject(responseObject).ToString());
+    return api.Get(route);
 }
 
 void HandleClient(object? state)
@@ -98,7 +36,7 @@ void HandleClient(object? state)
             List<string> body = new();
 
             string? auth = null;
-            string response = Response500;
+            string response = HTTPHelper.Response500;
             
             while ((currentLine = reader.ReadLine()) != null)
             {
@@ -113,7 +51,7 @@ void HandleClient(object? state)
                     if (requestParts.Length != 3 || requestParts[2] != "HTTP/1.1")
                     {
                         Console.Error.WriteLine("[{0}]Received malformed http request", Thread.CurrentThread.ManagedThreadId);
-                        writer.Write(Response400);
+                        writer.Write(HTTPHelper.Response400);
                         return;
                     }
 
@@ -123,7 +61,7 @@ void HandleClient(object? state)
 
                         default:
                             Console.Error.WriteLine("[{0}]Received unknown verb: {1}", Thread.CurrentThread.ManagedThreadId, requestParts[0]);
-                            writer.Write(Response400);
+                            writer.Write(HTTPHelper.Response400);
                             return;
                     }
                 }
@@ -152,7 +90,7 @@ void HandleClient(object? state)
             if (false)
             {
                 Console.Error.WriteLine("[{0}]Authentication failed for {1}!", Thread.CurrentThread.ManagedThreadId, tcpClient.Client.RemoteEndPoint);
-                writer.Write(Response401);
+                writer.Write(HTTPHelper.Response401);
                 return;
             }
 
