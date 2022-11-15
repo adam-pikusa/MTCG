@@ -1,7 +1,7 @@
 ﻿using MTCG;
 using System.Net.Sockets;
 
-Dictionary<string, IAPIEndPoint> apis = new();
+var apis = new Dictionary<string, IAPIEndPoint>();
 var cardApi = new CardAEP();
 apis.Add(cardApi.Route(), cardApi);
 
@@ -104,7 +104,9 @@ void HandleClient(object? state)
 
             switch (verb)
             {
+                case "DELETE": response = api.Delete(route); break;
                 case "GET": response = api.Get(route); break;
+                case "PATCH": response = api.Patch(route, new string(body)); break;
                 case "POST": response = api.Post(route, new string(body)); break;
                 default: 
                     Console.Error.WriteLine("[{0}]Received unknown HTTP verb: {1}", Thread.CurrentThread.ManagedThreadId, verb);
@@ -122,7 +124,7 @@ void HandleClient(object? state)
 }
 
 
-TcpListener listener = new(System.Net.IPAddress.Loopback, 80);
+var listener = new TcpListener(System.Net.IPAddress.Loopback, 80);
 listener.Start();
 
 while (true)
