@@ -12,10 +12,9 @@ namespace MTCG
 
         public string Route() => "cards";
 
-        public string Get(string route)
+        public string Get(string[] route)
         {
-            var parts = route.Substring(1).Split('/');
-            var index = int.Parse(parts[1]);
+            var index = int.Parse(route[1]);
 
             if (index >= cards.Count)
                 return HTTPHelper.Response404;
@@ -23,16 +22,16 @@ namespace MTCG
             return HTTPHelper.ResponseJson(JObject.FromObject(cards[index]).ToString());
         }
 
-        public string Delete(string route) => throw new NotImplementedException();
+        public string Delete(string[] route) => throw new NotImplementedException();
 
-        public string Post(string route, string body)
+        public string Post(string[] route, string body)
         {
             Console.WriteLine("[{0}]Received route {1} and body({2}):{3}", Thread.CurrentThread.ManagedThreadId, route, body.Length, body);
 
             return HTTPHelper.Response404;
         }
 
-        public string Patch(string route, string body)
+        public string Patch(string[] route, string body)
         {
             throw new NotImplementedException();
         }

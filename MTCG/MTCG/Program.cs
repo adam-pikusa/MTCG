@@ -3,7 +3,9 @@ using System.Net.Sockets;
 
 var apis = new Dictionary<string, IAPIEndPoint>();
 var cardApi = new CardAEP();
+var marketAPI = new MarketAEP();
 apis.Add(cardApi.Route(), cardApi);
+apis.Add(marketAPI.Route(), marketAPI);
 
 void HandleClient(object? state)
 {
@@ -84,6 +86,13 @@ void HandleClient(object? state)
 
             Console.WriteLine("[{0}]User authenticated.", Thread.CurrentThread.ManagedThreadId);
 
+            if (route == null)
+            {
+                Console.Error.WriteLine("[{0}]route was null!", Thread.CurrentThread.ManagedThreadId);
+                writer.Write(HTTPHelper.Response400);
+                return;
+            }
+
             var routeParts = route.Substring(1).Split('/');
 
             if (routeParts.Length < 1)
@@ -104,10 +113,10 @@ void HandleClient(object? state)
 
             switch (verb)
             {
-                case "DELETE": response = api.Delete(route); break;
-                case "GET": response = api.Get(route); break;
-                case "PATCH": response = api.Patch(route, new string(body)); break;
-                case "POST": response = api.Post(route, new string(body)); break;
+                case "DELETE": response = api.Delete(routeParts); break;
+                case "GET": response = api.Get(routeParts); break;
+                case "PATCH": response = api.Patch(routeParts, new string(body)); break;
+                case "POST": response = api.Post(routeParts, new string(body)); break;
                 default: 
                     Console.Error.WriteLine("[{0}]Received unknown HTTP verb: {1}", Thread.CurrentThread.ManagedThreadId, verb);
                     writer.Write(HTTPHelper.Response400);
@@ -119,7 +128,11 @@ void HandleClient(object? state)
     }
     catch (SocketException exc)
     {
-        Console.Error.WriteLine("[{0}]Caught exception: {1}", Thread.CurrentThread.ManagedThreadId, exc.Message);
+        Console.Error.WriteLine("[{0}]Caught SocketException: {1}", Thread.CurrentThread.ManagedThreadId, exc.Message);
+    }
+    catch (IOException exc)
+    {
+        Console.Error.WriteLine("[{0}]Caught IOException", Thread.CurrentThread.ManagedThreadId, exc.Message);
     }
 }
 
