@@ -1,26 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MTCG.DAL
+﻿namespace MTCG.DAL
 {
     public class PGDatabase : IDatabase
     {
-        static PGDatabase instance;
-        static PGDatabase() => instance = new PGDatabase();
-
-        private PGDatabase() 
+        public PGDatabase() 
         {
             Console.WriteLine("Database init");
         }
 
-        public IDatabase Instance() => instance;
-
-        public void HelloWorld()
+        public int HelloWorld()
         {
             Console.WriteLine("Hello world from DB");
+            return 1234;
         }
     }
 }
