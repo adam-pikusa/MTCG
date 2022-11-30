@@ -4,16 +4,18 @@ namespace MTCG.Test
 {
     public class DatabaseTest
     {
+        IDatabase db;
+
         [SetUp]
         public void Setup()
         {
-            
+            db = new PGDatabase();    
         }
 
         [Test]
         public void TestInit()
         {
-            Assert.That(Database.Instance.HelloWorld(), Is.EqualTo(1234));
+            Assert.That(db.HelloWorld(), Is.EqualTo(1234));
         }
     }
 }
