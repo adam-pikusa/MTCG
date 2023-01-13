@@ -2,6 +2,6 @@
 {
     public abstract class Component 
     {
-        public abstract Component deserializeFromJsonObject(dynamic jsonObject);
+        public abstract Component DeserializeFromJsonObject(dynamic jsonObject);
     }
 }

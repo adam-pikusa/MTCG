@@ -18,6 +18,7 @@ namespace MTCG.Models
             Fire
         }
 
+        public Guid? Guid { get; }
         public string Name { get; }
         public CardType Type { get; }
         public ElementType Element { get; }
@@ -26,6 +27,15 @@ namespace MTCG.Models
 
         public Card(string name, CardType type, ElementType element, long damage)
         {
+            Name = name;
+            Type = type;
+            Element = element;
+            Damage = damage;
+        }
+
+        public Card(Guid guid, string name, CardType type, ElementType element, long damage)
+        {
+            Guid = guid;
             Name = name;
             Type = type;
             Element = element;

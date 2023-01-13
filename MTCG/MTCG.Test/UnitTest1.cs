@@ -14,7 +14,7 @@ namespace MTCG.Test
         public void Setup()
         {
             {
-                var _cards = CardDeserializer.deserializeAllCards(File.ReadAllText(assetFile));
+                var _cards = CardDeserializer.DeserializeCardsArray(File.ReadAllText(assetFile));
 
                 cards = new Dictionary<string, Card>
                 {

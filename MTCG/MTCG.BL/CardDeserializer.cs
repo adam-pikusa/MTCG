@@ -6,7 +6,22 @@ namespace MTCG.BL
 {
     public static class CardDeserializer
     {
-        static Card deserializeCard(dynamic cardJsonObject)
+        static Component DeserializeComponentJsonObject(dynamic componentJsonObject)
+        {
+            Component? result = null;
+            
+            switch ((string)componentJsonObject["component_type"])
+            {
+                case nameof(WeakAgainstComponent): return new WeakAgainstComponent(); 
+                case nameof(ImmuneToComponent): return new ImmuneToComponent();
+            }
+
+            if (result != null) result.DeserializeFromJsonObject(componentJsonObject);
+
+            return result;
+        }
+
+        static Card DeserializeCardJsonObject(dynamic cardJsonObject)
         {
             var result = new Card(
                 (string)cardJsonObject["params"][0],
@@ -14,28 +29,27 @@ namespace MTCG.BL
                 Enum.Parse<Card.ElementType>((string)cardJsonObject["params"][2]),
                 (long)cardJsonObject["params"][3]);
 
-            foreach (var jcomp in cardJsonObject["components"])
-            {
-                Component? comp = null;
-                switch ((string)jcomp["component_type"])
-                {
-                    case nameof(WeakAgainstComponent): comp = new WeakAgainstComponent(); break;
-                    case nameof(ImmuneToComponent): comp = new ImmuneToComponent(); break;
-                }
-                if (comp != null)
-                    result.Components.Add(comp.deserializeFromJsonObject(jcomp));
-            }
+            foreach (var componentJsonObject in cardJsonObject["components"])
+                result.Components.Add(DeserializeComponentJsonObject(componentJsonObject));
 
             Console.WriteLine($"deserialized card: {result}");
             return result;
         }
 
-        public static List<Card> deserializeAllCards(string jsonString)
+        public static List<Card> DeserializeCardsArray(string jsonString)
         {
             var result = new List<Card>();
             dynamic data = JsonConvert.DeserializeObject(jsonString);
-            foreach (var card in data) result.Add(deserializeCard(card));
+            foreach (var card in data) result.Add(DeserializeCardJsonObject(card));
             return result;
         }
+
+        public static Card DeserializeCard(string jsonString)
+            => DeserializeCardJsonObject(
+                JsonConvert.DeserializeObject(jsonString));
+
+        public static Component DeserializeComponent(string jsonString)
+            => DeserializeComponentJsonObject(
+                JsonConvert.DeserializeObject(jsonString));
     }
 }

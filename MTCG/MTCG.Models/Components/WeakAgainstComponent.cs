@@ -9,7 +9,7 @@ namespace MTCG.Models.Components
         public string? Name { get; private set; }
         public Card.ElementType? Element { get; private set; }
 
-        public override Component deserializeFromJsonObject(dynamic jsonObject)
+        public override Component DeserializeFromJsonObject(dynamic jsonObject)
         {
             if (jsonObject.ContainsKey("name")) Name = (string)jsonObject["name"];
             if (jsonObject.ContainsKey("element")) Element = Enum.Parse<Card.ElementType>((string)jsonObject["element"]);

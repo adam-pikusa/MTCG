@@ -8,7 +8,7 @@ namespace MTCG
     {
         const string assetFile = @"Assets/cards.json";
 
-        static readonly List<Card> cards = CardDeserializer.deserializeAllCards(File.ReadAllText(assetFile));
+        static readonly List<Card> cards = CardDeserializer.DeserializeCardsArray(File.ReadAllText(assetFile));
 
         public string Route() => "cards";
 
