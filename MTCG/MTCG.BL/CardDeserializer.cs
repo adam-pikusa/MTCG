@@ -3,12 +3,22 @@ using MTCG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Converters;
 
 namespace MTCG.BL
 {
     public class CardDeserializer
     {
         static ILogger log = Logging.Get<CardDeserializer>();
+        static JsonSerializerSettings settings;
+        static JsonSerializer serializer;
+
+        static CardDeserializer()
+        {
+            settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+            settings.Converters.Add(new StringEnumConverter());
+            serializer = JsonSerializer.Create(settings);
+        }
 
         static Component DeserializeComponentJsonObject(dynamic componentJsonObject)
         {
@@ -16,8 +26,8 @@ namespace MTCG.BL
             
             switch ((string)componentJsonObject["component_type"])
             {
-                case nameof(WeakAgainstComponent): return new WeakAgainstComponent(); 
-                case nameof(ImmuneToComponent): return new ImmuneToComponent();
+                case nameof(WeakAgainstComponent): result = new WeakAgainstComponent(); break; 
+                case nameof(ImmuneToComponent): result = new ImmuneToComponent(); break;
             }
 
             if (result != null) result.DeserializeFromJsonObject(componentJsonObject);
@@ -60,5 +70,11 @@ namespace MTCG.BL
         public static Component DeserializeComponent(string jsonString)
             => DeserializeComponentJsonObject(
                 JsonConvert.DeserializeObject(jsonString));
+
+        public static string SerializeComponent(Component component) 
+            => JsonConvert.SerializeObject(component, settings);
+
+        public static string SerializeCardArray(Card[] cards)
+            => JArray.FromObject(cards, serializer).ToString();
     }
 }

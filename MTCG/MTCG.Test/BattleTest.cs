@@ -1,9 +1,9 @@
-using MTCG.BL;
+﻿using MTCG.BL;
 using MTCG.Models;
 
 namespace MTCG.Test
 {
-    public class Tests
+    public class BattleTest
     {
         const string assetFile = @"Assets/cards.json";
 
@@ -50,7 +50,7 @@ namespace MTCG.Test
         //The armor of Knights is so heavy that WaterSpells make them drown them instantly.
         //The Kraken is immune against spells.
         //The FireElves know Dragons since they were little and can evade their attacks. 
-        
+
         [TestCase("Gob", "Dra", 2)]
         [TestCase("Dra", "Gob", 1)]
         [TestCase("Wiz", "Ork", 1)]

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MTCG.BL;
 using Newtonsoft.Json.Linq;
 
 namespace MTCG.Apis
@@ -20,7 +21,7 @@ namespace MTCG.Apis
                 if (!Database.Instance.GetUserId(username, out var id)) return HTTPHelper.Response400;
                 if (!Database.Instance.GetUserStackCards(id, out var cards)) return HTTPHelper.Response400;
                 log.LogDebug("Returning {0} cards as json", cards.Length);
-                return HTTPHelper.ResponseJson(JArray.FromObject(cards).ToString());
+                return HTTPHelper.ResponseJson(CardDeserializer.SerializeCardArray(cards));
             }
 
             return HTTPHelper.Response400;

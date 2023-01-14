@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MTCG.BL;
 using MTCG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,8 +17,8 @@ namespace MTCG.Apis
         public string Get(string username, string route)
         {
             if (!Database.Instance.GetUserId(username, out string id)) return HTTPHelper.Response400;
-            if (!Database.Instance.GetDeck(id, out Card[] deck)) return HTTPHelper.Response400;
-            return HTTPHelper.ResponseJson(JArray.FromObject(deck).ToString());
+            if (!Database.Instance.GetDeck(id, out Deck deck)) return HTTPHelper.Response400;
+            return HTTPHelper.ResponseJson(CardDeserializer.SerializeCardArray(deck.ToArray()));
         }
 
         public string Put(string username, string route, string body)

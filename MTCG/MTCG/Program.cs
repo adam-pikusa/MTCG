@@ -11,6 +11,7 @@ var apis = new Dictionary<string, IAPIEndPoint>
     { "battles", new BattlesAEP() },
     { "cards", new CardsAEP() },
     { "deck", new DeckAEP() },
+    { "friends", new FriendsAEP() },
     { "packages", new PackagesAEP() },
     { "score", new ScoreAEP() },
     { "sessions", new SessionsAEP() },

@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DatabaseTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Assets\cards.json" />
   </ItemGroup>
 
@@ -30,6 +34,10 @@
     <Content Include="Assets\cards.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DatabaseTest.cs" />
   </ItemGroup>
 
 </Project>

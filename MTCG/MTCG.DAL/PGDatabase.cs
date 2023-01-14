@@ -5,6 +5,7 @@ using System.Data;
 using MTCG.Models.Components;
 using static MTCG.Models.Card;
 using Microsoft.Extensions.Logging;
+using System.Drawing;
 
 namespace MTCG.DAL
 {
@@ -45,6 +46,15 @@ namespace MTCG.DAL
             return result;
         }
 
+        IDbDataParameter CreateInt32Param(IDbCommand command, string colName, int value)
+        {
+            var result = command.CreateParameter();
+            result.DbType= DbType.Int32;
+            result.ParameterName = colName;
+            result.Value = value;
+            return result;
+        }
+
         List<Component> GetCardComponents(string cardId)
         {           
             var result = new List<Component>();
@@ -53,9 +63,11 @@ namespace MTCG.DAL
             command.Parameters.Add(CreateStringParam(command, "card_id", cardId));
             using (var reader = command.ExecuteReader())
                 while (reader.Read())
-                    result.Add(
-                        CardDeserializer.DeserializeComponent(
-                            reader.GetString(0)));
+                {
+                    var data = reader.GetString(0);
+                    result.Add(CardDeserializer.DeserializeComponent(data));
+                    log.LogDebug("deserialized card component of {0}=> {1}", cardId, result[result.Count-1]);
+                }
 
             return result;
         }
@@ -65,6 +77,22 @@ namespace MTCG.DAL
             log.LogInformation("Database init");
             connection.Open();
             return true;
+        }
+
+        void SaveTransaction(string userId, long amount)
+        {
+            var command = CreateCommand("INSERT INTO transaction_history (user_id, coin_amount, \"time_stamp\") VALUES (@user_id, @coin_amount, CURRENT_TIMESTAMP);");
+            command.Parameters.Add(CreateStringParam(command, "user_id", userId));
+            command.Parameters.Add(CreateInt64Param(command, "coin_amount", amount));
+            command.ExecuteNonQuery();
+            log.LogDebug("added entry to transaction history: user {0} paid/got {1} coins, timestamped at current time", userId, amount);
+        }
+
+        bool UserIdExists(string userId)
+        {
+            var command = CreateCommand("SELECT user_id FROM users WHERE user_id=@user_id;");
+            command.Parameters.Add(CreateStringParam(command, "user_id", userId));
+            return command.ExecuteScalar() as string == userId;
         }
 
         public bool CreateUser(string username, string password) 
@@ -125,17 +153,6 @@ namespace MTCG.DAL
             return hash == passwordHasher.Hash(password);
         }
 
-        public bool SetUserData(string username, UserData data)
-        {
-            var command = CreateCommand("UPDATE users SET profile_name=@profile_name, bio=@bio, profile_image=@profile_image WHERE username=@username;");
-            command.Parameters.Add(CreateStringParam(command, "username", username));
-            command.Parameters.Add(CreateStringParam(command, "profile_name", data.Name));
-            command.Parameters.Add(CreateStringParam(command, "bio", data.Bio));
-            command.Parameters.Add(CreateStringParam(command, "profile_image", data.Image));
-            command.ExecuteNonQuery();
-            return true;
-        }
-
         public bool GetUserData(string username, out UserData data)
         {
             var command = CreateCommand("SELECT profile_name, bio, profile_image FROM users WHERE username=@username;");
@@ -155,6 +172,17 @@ namespace MTCG.DAL
             return true;
         }
 
+        public bool SetUserData(string username, UserData data)
+        {
+            var command = CreateCommand("UPDATE users SET profile_name=@profile_name, bio=@bio, profile_image=@profile_image WHERE username=@username;");
+            command.Parameters.Add(CreateStringParam(command, "username", username));
+            command.Parameters.Add(CreateStringParam(command, "profile_name", data.Name));
+            command.Parameters.Add(CreateStringParam(command, "bio", data.Bio));
+            command.Parameters.Add(CreateStringParam(command, "profile_image", data.Image));
+            command.ExecuteNonQuery();
+            return true;
+        }
+
         public bool GetUserStats(string username, out UserStats userStats)
         {
             var command = CreateCommand("SELECT wins, losses, elo FROM users WHERE username=@username;");
@@ -171,6 +199,19 @@ namespace MTCG.DAL
                 };
             }
 
+            return true;
+        }
+
+        public bool SetUserStats(string username, UserStats userStats)
+        {
+            log.LogDebug("updating stats of {0} to {1},{2},{3}", username, userStats.Wins, userStats.Losses, userStats.Elo);
+
+            var command = CreateCommand("UPDATE users SET wins=@wins, losses=@losses, elo=@elo WHERE username=@username;");
+            command.Parameters.Add(CreateInt32Param(command, "wins", userStats.Wins));
+            command.Parameters.Add(CreateInt32Param(command, "losses", userStats.Losses));
+            command.Parameters.Add(CreateInt32Param(command, "elo", userStats.Elo));
+            command.Parameters.Add(CreateStringParam(command, "username", username));
+            command.ExecuteNonQuery();
             return true;
         }
 
@@ -281,10 +322,22 @@ namespace MTCG.DAL
                 var cardGuid = card.Guid ?? Guid.NewGuid();
                 CreateCard(cardGuid.ToString(), card);
 
-                var command = CreateCommand("INSERT INTO marketplace_card_packs (pack_id, card_id) VALUES (@pack_id, @card_id);");
-                command.Parameters.Add(CreateStringParam(command, "pack_id", newPackId.ToString()));
-                command.Parameters.Add(CreateStringParam(command, "card_id", cardGuid.ToString()));
-                command.ExecuteNonQuery();
+                {
+                    var command = CreateCommand("INSERT INTO marketplace_card_packs (pack_id, card_id) VALUES (@pack_id, @card_id);");
+                    command.Parameters.Add(CreateStringParam(command, "pack_id", newPackId.ToString()));
+                    command.Parameters.Add(CreateStringParam(command, "card_id", cardGuid.ToString()));
+                    command.ExecuteNonQuery();
+                }
+
+                foreach (var component in card.Components)
+                {
+                    var data = CardDeserializer.SerializeComponent(component);
+                    var command = CreateCommand("INSERT INTO card_component (card_id,component_data) VALUES (@card_id,@c_data);");
+                    command.Parameters.Add(CreateStringParam(command, "card_id", cardGuid.ToString()));
+                    command.Parameters.Add(CreateStringParam(command, "c_data", data));
+                    command.ExecuteNonQuery();
+                    log.LogTrace("serialized {0} to [{1}]", component, data);
+                }
             }
 
             return true;
@@ -319,12 +372,7 @@ namespace MTCG.DAL
                 if (coins < 5) return false;
             }
 
-            {
-                var command = CreateCommand("UPDATE users SET coins=@coins WHERE user_id=@user_id;");
-                command.Parameters.Add(CreateInt64Param(command, "coins", coins - 5));
-                command.Parameters.Add(CreateStringParam(command, "user_id", userId));
-                command.ExecuteNonQuery();
-            }
+            if (!ChangeCoinAmount(userId, -5)) return false;
 
             {
                 var command = CreateCommand(
@@ -405,7 +453,11 @@ namespace MTCG.DAL
                     reader.GetInt64(4));
             }
 
+            log.LogDebug("parsed card from database: {0}\n getting components...", card);
+
             card.Components = GetCardComponents(cardId);
+
+            log.LogDebug("card with components:{0}", card);
 
             return true;
         }
@@ -429,7 +481,7 @@ namespace MTCG.DAL
             return true;
         }
 
-        public bool GetDeck(string userId, out Card[] deck)
+        public bool GetDeck(string userId, out Deck deck)
         {
             if (!GetDeck(userId, out string[] cardIds))
             {
@@ -437,12 +489,134 @@ namespace MTCG.DAL
                 return false;
             }
 
-            var result = new List<Card>();
+            var result = new Deck();
             foreach (var cardId in cardIds)
                 if (GetCard(cardId, out var card))
                     result.Add(card);
 
-            deck = result.ToArray();
+            deck = result;
+            return true;
+        }
+
+        public bool CreateBattleChallenge(string username)
+        {
+            var command = CreateCommand("INSERT INTO battle_challenges (username) VALUES (@username);");
+            command.Parameters.Add(CreateStringParam(command, "username", username));
+            command.ExecuteNonQuery();
+            return true;
+        }
+
+        public bool GetBattles(out string[] usernames)
+        {
+            var result = new List<string>();
+            var command = CreateCommand("SELECT username FROM battle_challenges;");
+            using (var reader = command.ExecuteReader())
+                while (reader.Read())
+                    result.Add(
+                        reader.GetString(0).Trim());
+            
+            usernames = result.ToArray();
+            return true;
+        }
+
+        public bool AddFriend(string username, string usernameFriend)
+        {
+            if (!GetUserId(usernameFriend, out var _)) return false;
+
+            if (usernameFriend == null || usernameFriend == null) return false; 
+            if (usernameFriend == username) return false;
+
+            string 
+                usernameA = username, 
+                usernameB = usernameFriend;
+            
+            if (usernameA.CompareTo(usernameB) > 0) 
+            {
+                usernameA = usernameFriend;
+                usernameB = username;
+            }
+
+            var command = CreateCommand("INSERT INTO friends VALUES (@user_a, @user_b);");
+            command.Parameters.Add(CreateStringParam(command, "user_a", usernameA));
+            command.Parameters.Add(CreateStringParam(command, "user_b", usernameB));
+            command.ExecuteNonQuery();
+            return true;
+        }
+
+        public bool RemoveFriend(string username, string usernameFriend)
+        {
+            if (usernameFriend == null || usernameFriend == null) return false;
+            if (usernameFriend == username) return false;
+
+            string
+                usernameA = username,
+                usernameB = usernameFriend;
+
+            if (usernameA.CompareTo(usernameB) > 0)
+            {
+                usernameA = usernameFriend;
+                usernameB = username;
+            }
+
+            var command = CreateCommand("DELETE FROM friends WHERE usernameA=@usernameA AND usernameB=@usernameB;");
+            command.Parameters.Add(CreateStringParam(command, "usernameA", usernameA));
+            command.Parameters.Add(CreateStringParam(command, "usernameB", usernameB));
+            command.ExecuteNonQuery();
+
+            return true;
+        }
+
+        public bool GetFriendbattles(string username, out string[] usernames)
+        {
+            if (!GetBattles(out var allBattlers))
+            {
+                usernames = null;
+                return false;
+            }
+
+            var result = new List<string>();
+
+            foreach (var battler in allBattlers)
+            {
+                string usernameA = username, usernameB = battler;
+
+                if (usernameA.CompareTo(usernameB) > 0)
+                {
+                    usernameA = battler;
+                    usernameB = username;
+                }
+
+                var command = CreateCommand("SELECT 123 FROM friends WHERE usernameA=@usernameA AND usernameB=@usernameB;");
+                command.Parameters.Add(CreateStringParam(command, "usernameA", usernameA));
+                command.Parameters.Add(CreateStringParam(command, "usernameB", usernameB));
+                var check = command.ExecuteScalar();
+                if (check != null && (int)check == 123)
+                    result.Add(battler);
+            }
+
+            usernames = result.ToArray();
+            return true;
+        }
+
+        public bool EndBattle(string username)
+        {
+            var command = CreateCommand("DELETE FROM battle_challenges WHERE username=@username;");
+            command.Parameters.Add(CreateStringParam(command, "username", username));
+            command.ExecuteNonQuery();
+            return true;
+        }
+
+        public bool ChangeCoinAmount(string userId, long coinAmountDelta)
+        {
+            if (!UserIdExists(userId)) return false;
+
+            var command = CreateCommand("UPDATE users SET coins=coins+@coins WHERE user_id=@user_id;");
+            command.Parameters.Add(CreateInt64Param(command, "coins", coinAmountDelta));
+            command.Parameters.Add(CreateStringParam(command, "user_id", userId));
+            command.ExecuteNonQuery();
+
+            SaveTransaction(userId, coinAmountDelta);
+            
             return true;
         }
     }
