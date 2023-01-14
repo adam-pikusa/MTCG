@@ -1,6 +1,7 @@
 ﻿using MTCG.Models.Components;
 using MTCG.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MTCG.BL
 {
@@ -21,16 +22,21 @@ namespace MTCG.BL
             return result;
         }
 
-        static Card DeserializeCardJsonObject(dynamic cardJsonObject)
+        static Card DeserializeCardJsonObject(JObject cardJsonObject)
         {
-            var result = new Card(
-                (string)cardJsonObject["params"][0],
-                Enum.Parse<Card.CardType>((string)cardJsonObject["params"][1]),
-                Enum.Parse<Card.ElementType>((string)cardJsonObject["params"][2]),
-                (long)cardJsonObject["params"][3]);
+            Card result;
+            var name = (string)cardJsonObject["params"][0];
+            var type = Enum.Parse<Card.CardType>((string)cardJsonObject["params"][1]);
+            var element = Enum.Parse<Card.ElementType>((string)cardJsonObject["params"][2]);
 
-            foreach (var componentJsonObject in cardJsonObject["components"])
-                result.Components.Add(DeserializeComponentJsonObject(componentJsonObject));
+            if (cardJsonObject.TryGetValue("id", out var readId))
+                result = new Card((Guid)readId, name, type, element, (long)cardJsonObject["params"][3]);
+            else
+                result = new Card(name, type, element, (long)cardJsonObject["params"][3]);
+
+            if (cardJsonObject.TryGetValue("components", out var components))
+                foreach (var componentJsonObject in components)
+                    result.Components.Add(DeserializeComponentJsonObject(componentJsonObject));
 
             Console.WriteLine($"deserialized card: {result}");
             return result;
@@ -46,7 +52,7 @@ namespace MTCG.BL
 
         public static Card DeserializeCard(string jsonString)
             => DeserializeCardJsonObject(
-                JsonConvert.DeserializeObject(jsonString));
+                JsonConvert.DeserializeObject<JObject>(jsonString));
 
         public static Component DeserializeComponent(string jsonString)
             => DeserializeComponentJsonObject(

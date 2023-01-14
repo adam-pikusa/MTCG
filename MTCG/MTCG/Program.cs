@@ -1,9 +1,21 @@
 ﻿ using MTCG;
+using MTCG.Apis;
+using MTCG.BL;
 using System.Net.Sockets;
 
-var apis = new Dictionary<string, IAPIEndPoint>();
-var cardApi = new CardAEP();
-apis.Add(cardApi.Route(), cardApi);
+var apis = new Dictionary<string, IAPIEndPoint>
+{
+    { "battles", new BattlesAEP() },
+    { "cards", new CardsAEP() },
+    { "deck", new DeckAEP() },
+    { "packages", new PackagesAEP() },
+    { "score", new ScoreAEP() },
+    { "sessions", new SessionsAEP() },
+    { "stats", new StatsAEP() },
+    { "tradings", new TradingsAEP() },
+    { "transactions", new TransactionsAEP() },
+    { "users", new UsersAEP() },
+};
 
 void HandleClient(object? state)
 {
@@ -75,6 +87,8 @@ void HandleClient(object? state)
 
             Console.WriteLine("[{0}]Checking auth info [{1}]...", Thread.CurrentThread.ManagedThreadId, auth);
 
+            auth = SessionHandler.GetUsername(auth);
+
             if (false)
             {
                 Console.Error.WriteLine("[{0}]Authentication failed for {1}!", Thread.CurrentThread.ManagedThreadId, tcpClient.Client.RemoteEndPoint);
@@ -93,6 +107,12 @@ void HandleClient(object? state)
                 return;
             }
 
+            if (routeParts[0].Contains('?'))
+            {
+                Console.WriteLine("Detected URL parameter: {0}", routeParts[0]);
+                routeParts[0] = routeParts[0].Split('?')[0]; // Remove URL Parameters
+            }
+
             if (!apis.TryGetValue(routeParts[0], out var api))
             {
                 Console.Error.WriteLine("[{0}]Received http request for undefined route: {1}", Thread.CurrentThread.ManagedThreadId, routeParts[0]);
@@ -104,10 +124,11 @@ void HandleClient(object? state)
 
             switch (verb)
             {
-                case "DELETE": response = api.Delete(route); break;
-                case "GET": response = api.Get(route); break;
-                case "PATCH": response = api.Patch(route, new string(body)); break;
-                case "POST": response = api.Post(route, new string(body)); break;
+                case "DELETE": response = api.Delete(auth, route); break;
+                case "GET": response = api.Get(auth, route); break;
+                case "PUT": response = api.Put(auth, route, new string(body)); break;
+                case "PATCH": response = api.Patch(auth, route, new string(body)); break;
+                case "POST": response = api.Post(auth, route, new string(body)); break;
                 default: 
                     Console.Error.WriteLine("[{0}]Received unknown HTTP verb: {1}", Thread.CurrentThread.ManagedThreadId, verb);
                     writer.Write(HTTPHelper.Response400);
@@ -124,7 +145,7 @@ void HandleClient(object? state)
 }
 
 
-var listener = new TcpListener(System.Net.IPAddress.Loopback, 80);
+var listener = new TcpListener(System.Net.IPAddress.Loopback, 10001);
 listener.Start();
 
 while (true)

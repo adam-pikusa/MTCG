@@ -13,12 +13,14 @@ namespace MTCG.DAL
         bool GetUserData(string username, out UserData data);
         bool GetUserStats(string username, out UserStats UserStats);
         bool GetUserId(string username, out string userId);
+        bool GetUserStackCards(string userId, out Card[] cards);
 
         bool CreateCard(Card card);
         bool GetCard(string cardId, out Card card);
 
         bool SetDeck(string userId, string[] cardIds);
         bool GetDeck(string userId, out string[] cardIds);
+        bool GetDeck(string userId, out Card[] deck);
         bool SwapCardDecks(string cardId, string targetDeckUserId);
 
         bool GetScoreBoard(out (string, int)[] eloRatings);
@@ -32,6 +34,7 @@ namespace MTCG.DAL
         bool AcceptTradeOffer(string tradeListingId);
 
         bool CreatePack(Card[] cards);
-        bool BuyPack(string userId);
+        bool GetPacks(out string[] packIds);
+        bool BuyPack(string userId, string packId);
     }
 }

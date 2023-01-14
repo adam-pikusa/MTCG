@@ -73,15 +73,20 @@ namespace MTCG.DAL
                 "INSERT INTO users (user_id, username, password_hash, coins, bio, profile_image, wins, losses, elo)" +
                 "VALUES(@user_id, @username, @password_hash, 20, NULL, NULL, 0, 0, 100);");
 
-            var parameters = new IDbDataParameter[]
-            {
-                CreateStringParam(command, "user_id", userId),
-                CreateStringParam(command, "username", username),
-                CreateStringParam(command, "password_hash", passwordHasher.Hash(password))
-            };
+            command.Parameters.Add(CreateStringParam(command, "user_id", userId));
+            command.Parameters.Add(CreateStringParam(command, "username", username));
+            command.Parameters.Add(CreateStringParam(command, "password_hash", passwordHasher.Hash(password)));
 
-            foreach (var param in parameters) command.Parameters.Add(param);
-            command.ExecuteNonQuery();
+            try
+            {
+                command.ExecuteNonQuery();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.Message);
+                return false;
+            }
+
             return true;
         }
 
@@ -138,9 +143,9 @@ namespace MTCG.DAL
                 reader.Read();
                 data = new UserData
                 {
-                    Name = reader.GetString(0),
-                    Bio = reader.GetString(1),
-                    Image = reader.GetString(2)
+                    Name = reader.IsDBNull(0) ? null : reader.GetString(0),
+                    Bio = reader.IsDBNull(1) ? null : reader.GetString(1),
+                    Image = reader.IsDBNull(2) ? null : reader.GetString(2)
                 };
             }
 
@@ -168,6 +173,20 @@ namespace MTCG.DAL
 
         public bool SetDeck(string userId, string[] cardIds)
         {
+            foreach (var cardId in cardIds)
+            {
+                Console.WriteLine("checking if {0} owns {1}", userId, cardId);
+                var command = CreateCommand("SELECT 123 FROM user_card WHERE user_id=@user_id AND card_id=@card_id;");
+                command.Parameters.Add(CreateStringParam(command, "user_id", userId));
+                command.Parameters.Add(CreateStringParam(command, "card_id", cardId));
+                var check = command.ExecuteScalar();
+                if (check == null || (int)check != 123)
+                {
+                    Console.WriteLine("user does not own card to be inserted into deck");
+                    return false;
+                }
+            }
+
             {
                 var command = CreateCommand("DELETE FROM deck WHERE user_id=@user_id;");
                 command.Parameters.Add(CreateStringParam(command, "user_id", userId));
@@ -176,10 +195,13 @@ namespace MTCG.DAL
 
             foreach (var cardId in cardIds)
             {
-                var command = CreateCommand("INSERT INTO deck (user_id, card_id) VALUES(@user_id, @card_id);");
+                Console.WriteLine("trying to insert {0},   {1}", userId, cardId);
+
+                var command = CreateCommand("INSERT INTO deck (user_id, card_id) VALUES (@user_id, @card_id);");
                 command.Parameters.Add(CreateStringParam(command, "user_id", userId));
                 command.Parameters.Add(CreateStringParam(command, "card_id", cardId));
-                command.ExecuteNonQuery();
+                var insertCheck = command.ExecuteScalar();
+                Console.WriteLine("inserted: {0}", insertCheck);
             }
 
             return true;
@@ -268,19 +290,21 @@ namespace MTCG.DAL
             return true;
         }
 
-        public bool BuyPack(string userId)
+        public bool GetPacks(out string[] packIds)
         {
-            string randomPackId;
+            var result = new List<string>();
+            var command = CreateCommand("SELECT pack_id FROM marketplace_card_packs;");
             
-            {
-                // slow way to get random row but it works
-                // implementation quirk: more likely to get bigger packs -> not an issue i think
-                var command = CreateCommand("SELECT pack_id FROM marketplace_card_packs ORDER BY RANDOM() LIMIT 1;");
-                randomPackId = (string)command.ExecuteScalar();
+            using (var reader = command.ExecuteReader())
+                while (reader.Read())
+                    result.Add(reader.GetString(0));
 
-                if (randomPackId == null) return false;
-            }
+            packIds = result.ToArray();
+            return true;
+        }
 
+        public bool BuyPack(string userId, string packId)
+        {
             long coins;
 
             {
@@ -310,13 +334,13 @@ namespace MTCG.DAL
                     "FROM marketplace_card_packs " +
                     "WHERE pack_id=@pack_id;");
                 command.Parameters.Add(CreateStringParam(command, "user_id", userId));
-                command.Parameters.Add(CreateStringParam(command, "pack_id", randomPackId));
+                command.Parameters.Add(CreateStringParam(command, "pack_id", packId));
                 command.ExecuteNonQuery();
             }
 
             {
                 var command = CreateCommand("DELETE FROM marketplace_card_packs WHERE pack_id=@pack_id;");
-                command.Parameters.Add(CreateStringParam(command, "pack_id", randomPackId));
+                command.Parameters.Add(CreateStringParam(command, "pack_id", packId));
                 command.ExecuteNonQuery();
             }
 
@@ -379,9 +403,46 @@ namespace MTCG.DAL
                     Enum.Parse<CardType>(reader.GetString(3)),
                     Enum.Parse<ElementType>(reader.GetString(2)),
                     reader.GetInt64(4));
-                card.Components = GetCardComponents(cardId);
             }
 
+            card.Components = GetCardComponents(cardId);
+
+            return true;
+        }
+
+        public bool GetUserStackCards(string userId, out Card[] cards)
+        {
+            var cardIds = new List<string>();
+            var result = new List<Card>();
+
+            var command = CreateCommand("SELECT card_id FROM user_card WHERE user_id=@user_id;");
+            command.Parameters.Add(CreateStringParam(command, "user_id", userId));
+            using (var reader = command.ExecuteReader())
+                while(reader.Read())
+                    cardIds.Add(reader.GetString(0));
+
+            foreach (var cardId in cardIds)
+                if (GetCard(cardId, out var card))
+                    result.Add(card);
+
+            cards = result.ToArray();
+            return true;
+        }
+
+        public bool GetDeck(string userId, out Card[] deck)
+        {
+            if (!GetDeck(userId, out string[] cardIds))
+            {
+                deck = null;
+                return false;
+            }
+
+            var result = new List<Card>();
+            foreach (var cardId in cardIds)
+                if (GetCard(cardId, out var card))
+                    result.Add(card);
+
+            deck = result.ToArray();
             return true;
         }
     }
