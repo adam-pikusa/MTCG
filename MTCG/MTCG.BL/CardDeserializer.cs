@@ -2,11 +2,14 @@
 using MTCG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace MTCG.BL
 {
-    public static class CardDeserializer
+    public class CardDeserializer
     {
+        static ILogger log = Logging.Get<CardDeserializer>();
+
         static Component DeserializeComponentJsonObject(dynamic componentJsonObject)
         {
             Component? result = null;
@@ -38,7 +41,7 @@ namespace MTCG.BL
                 foreach (var componentJsonObject in components)
                     result.Components.Add(DeserializeComponentJsonObject(componentJsonObject));
 
-            Console.WriteLine($"deserialized card: {result}");
+            log.LogDebug($"deserialized card: {result}");
             return result;
         }
 

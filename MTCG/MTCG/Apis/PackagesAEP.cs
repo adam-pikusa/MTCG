@@ -1,9 +1,12 @@
-﻿using MTCG.BL;
+﻿using Microsoft.Extensions.Logging;
+using MTCG.BL;
 
 namespace MTCG.Apis
 {
     internal class PackagesAEP : IAPIEndPoint
     {
+        ILogger log = Logging.Get<PackagesAEP>();
+
         public string Delete(string username, string route) => HTTPHelper.Response400;
         public string Get(string username, string route) => HTTPHelper.Response400;
         public string Put(string username, string route, string body) => HTTPHelper.Response400;
@@ -18,7 +21,7 @@ namespace MTCG.Apis
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                log.LogError(ex.Message);
                 return HTTPHelper.Response500;
             }
 

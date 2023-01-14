@@ -1,10 +1,13 @@
-﻿using MTCG.BL;
+﻿using Microsoft.Extensions.Logging;
+using MTCG.BL;
 using Newtonsoft.Json;
 
 namespace MTCG.Apis
 {
     internal class SessionsAEP : IAPIEndPoint
     {
+        ILogger log = Logging.Get<SessionsAEP>();
+
         public string Delete(string username, string route) => HTTPHelper.Response400;
         public string Get(string username, string route) => HTTPHelper.Response400;
         public string Put(string username, string route, string body) => HTTPHelper.Response400;
@@ -24,13 +27,11 @@ namespace MTCG.Apis
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                log.LogError(ex.Message);
                 return HTTPHelper.Response500;
             }
 
             return HTTPHelper.ResponsePlain(SessionHandler.GetToken(login));
-
-            throw new NotImplementedException();
         }
     }
 }

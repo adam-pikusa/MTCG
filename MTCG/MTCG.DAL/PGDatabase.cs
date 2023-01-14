@@ -4,11 +4,14 @@ using Npgsql;
 using System.Data;
 using MTCG.Models.Components;
 using static MTCG.Models.Card;
+using Microsoft.Extensions.Logging;
 
 namespace MTCG.DAL
 {
     public class PGDatabase : IDatabase
     {
+        ILogger log = Logging.Get<PGDatabase>();
+
         IDbConnection connection = new NpgsqlConnection("Host=localhost;Username=postgres;Password=1234;Database=mtcgdbtest");
         PasswordHasher passwordHasher = new();
 
@@ -59,7 +62,7 @@ namespace MTCG.DAL
 
         public bool Init()
         {
-            Console.WriteLine("Database init");
+            log.LogInformation("Database init");
             connection.Open();
             return true;
         }
@@ -83,7 +86,7 @@ namespace MTCG.DAL
             }
             catch (Exception exc)
             {
-                Console.WriteLine(exc.Message);
+                log.LogError(exc.Message);
                 return false;
             }
 
@@ -175,14 +178,14 @@ namespace MTCG.DAL
         {
             foreach (var cardId in cardIds)
             {
-                Console.WriteLine("checking if {0} owns {1}", userId, cardId);
+                log.LogDebug("checking if {0} owns {1}", userId, cardId);
                 var command = CreateCommand("SELECT 123 FROM user_card WHERE user_id=@user_id AND card_id=@card_id;");
                 command.Parameters.Add(CreateStringParam(command, "user_id", userId));
                 command.Parameters.Add(CreateStringParam(command, "card_id", cardId));
                 var check = command.ExecuteScalar();
                 if (check == null || (int)check != 123)
                 {
-                    Console.WriteLine("user does not own card to be inserted into deck");
+                    log.LogDebug("user does not own card to be inserted into deck");
                     return false;
                 }
             }
@@ -195,13 +198,10 @@ namespace MTCG.DAL
 
             foreach (var cardId in cardIds)
             {
-                Console.WriteLine("trying to insert {0},   {1}", userId, cardId);
-
                 var command = CreateCommand("INSERT INTO deck (user_id, card_id) VALUES (@user_id, @card_id);");
                 command.Parameters.Add(CreateStringParam(command, "user_id", userId));
                 command.Parameters.Add(CreateStringParam(command, "card_id", cardId));
                 var insertCheck = command.ExecuteScalar();
-                Console.WriteLine("inserted: {0}", insertCheck);
             }
 
             return true;

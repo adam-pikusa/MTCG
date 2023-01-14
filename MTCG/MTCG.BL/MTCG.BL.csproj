@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MTCG.Logging\MTCG.Logging.csproj" />
     <ProjectReference Include="..\MTCG.Models\MTCG.Models.csproj" />
   </ItemGroup>
 

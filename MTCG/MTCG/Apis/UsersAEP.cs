@@ -1,4 +1,5 @@
-﻿using MTCG.Models;
+﻿using Microsoft.Extensions.Logging;
+using MTCG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -6,6 +7,8 @@ namespace MTCG.Apis
 {
     internal class UsersAEP : IAPIEndPoint
     {
+        ILogger log = Logging.Get<UsersAEP>();
+
         public string Delete(string username, string route) => HTTPHelper.Response400;
         public string Patch(string username, string route, string body) => HTTPHelper.Response400;
 
@@ -19,7 +22,7 @@ namespace MTCG.Apis
 
             if (requestedUserData != username)
             {
-                Console.WriteLine("user tried to get data of other user");
+                log.LogWarning("user tried to get data of other user");
                 return HTTPHelper.Response400;
             }
 
@@ -39,7 +42,7 @@ namespace MTCG.Apis
 
             if (requestedUserData != username)
             {
-                Console.WriteLine("user tried to get data of other user");
+                log.LogWarning("user tried to get data of other user");
                 return HTTPHelper.Response400;
             }
 
@@ -50,7 +53,7 @@ namespace MTCG.Apis
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                log.LogError(ex.Message);
                 return HTTPHelper.Response400;
             }
 
@@ -59,7 +62,7 @@ namespace MTCG.Apis
 
         public string Post(string username, string route, string body)
         {
-            Console.WriteLine($"Received users post: [{body}]");
+            log.LogTrace($"Received users post: [{body}]");
 
             try
             {
@@ -71,7 +74,7 @@ namespace MTCG.Apis
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                log.LogError(ex.Message);
                 return HTTPHelper.Response500;
             }
 

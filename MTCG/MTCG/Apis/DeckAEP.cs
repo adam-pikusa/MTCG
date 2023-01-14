@@ -1,4 +1,5 @@
-﻿using MTCG.Models;
+﻿using Microsoft.Extensions.Logging;
+using MTCG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -6,6 +7,8 @@ namespace MTCG.Apis
 {
     internal class DeckAEP : IAPIEndPoint
     {
+        ILogger log = Logging.Get<DeckAEP>();
+
         public string Delete(string username, string route) => HTTPHelper.Response400;
         public string Patch(string username, string route, string body) => HTTPHelper.Response400;
         public string Post(string username, string route, string body) => HTTPHelper.Response400;
@@ -28,7 +31,7 @@ namespace MTCG.Apis
             }
             catch (Exception ex)
             {
-                Console.Write(ex.Message);
+                log.LogError(ex.Message);
                 return HTTPHelper.Response400;
             }
 

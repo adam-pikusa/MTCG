@@ -17,7 +17,6 @@
             {
                 case "packages":
                     {
-                        Console.WriteLine("user:{2} route:{0}, body:{1}", route, body, username);
                         if (!Database.Instance.GetUserId(username, out var id)) return HTTPHelper.Response400;
                         if (!Database.Instance.GetPacks(out var packs)) return HTTPHelper.Response500;
                         if (packs.Length < 1) return HTTPHelper.Response400;

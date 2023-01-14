@@ -1,0 +1,12 @@
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\bin\Debug\net6.0\MTCG.Logging.deps.json
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\bin\Debug\net6.0\MTCG.Logging.dll
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\bin\Debug\net6.0\MTCG.Logging.pdb
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.csproj.AssemblyReference.cache
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.GeneratedMSBuildEditorConfig.editorconfig
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.AssemblyInfoInputs.cache
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.AssemblyInfo.cs
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.csproj.CoreCompileInputs.cache
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.dll
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\refint\MTCG.Logging.dll
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\MTCG.Logging.pdb
+D:\fh\swen\MTCG\MTCG\MTCG.Logging\obj\Debug\net6.0\ref\MTCG.Logging.dll

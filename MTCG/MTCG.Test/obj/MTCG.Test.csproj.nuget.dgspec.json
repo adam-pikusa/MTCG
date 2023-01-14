@@ -28,6 +28,9 @@
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
+              "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Logging\\MTCG.Logging.csproj": {
+                "projectPath": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Logging\\MTCG.Logging.csproj"
+              },
               "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Models\\MTCG.Models.csproj": {
                 "projectPath": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Models\\MTCG.Models.csproj"
               }
@@ -113,6 +116,71 @@
           "targetAlias": "net6.0",
           "dependencies": {
             "Npgsql": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.100\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Logging\\MTCG.Logging.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Logging\\MTCG.Logging.csproj",
+        "projectName": "MTCG.Logging",
+        "projectPath": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Logging\\MTCG.Logging.csproj",
+        "packagesPath": "C:\\Users\\tonts\\.nuget\\packages\\",
+        "outputPath": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Logging\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\tonts\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "targetAlias": "net6.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Console": {
               "target": "Package",
               "version": "[7.0.0, )"
             }
