@@ -1,102 +1,141 @@
 ﻿using MTCG.DAL;
-using System.Security.Cryptography;
-using System.Text;
+using MTCG.Models;
 
 namespace MTCG.Test
 {
     public class DatabaseTest
     {
         PGDatabase db;
+        List<Card> testCards;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             db = new PGDatabase();    
             db.Init();
-        }
+            db.Clear();
 
-        [Test]
-        public void TestCard1()
-        {
-            var comps = db.ReadCardComps(1);
-            
-            Assert.That(comps.Count, Is.EqualTo(2));
-            
-            Assert.That(comps[0], Is.EqualTo(new PGDatabase.TestCompA { Data = 123 }));
-            Assert.That(comps[1], Is.EqualTo(new PGDatabase.TestCompB { DataS = "data1", DataI = 11 }));
-        }
-
-        [Test]
-        public void TestCard2() 
-        {
-            var comps = db.ReadCardComps(2);
-            
-            Assert.That(comps.Count, Is.EqualTo(1));
-
-            Assert.That(comps[0], Is.EqualTo(new PGDatabase.TestCompB { DataS = "data2", DataI = 22 }));
-        }
-
-        [Test]
-        public void TestPack1() 
-        { 
-            var packCards = db.ReadPackCards(1);
-            Assert.That(packCards.Count, Is.EqualTo(1));
-            Assert.That(packCards[0], Is.EqualTo(1));
-        }
-
-        [Test]
-        public void TestPack2()
-        {
-            var packCards = db.ReadPackCards(2);
-            Assert.That(packCards.Count, Is.EqualTo(2));
-            Assert.That(packCards[0], Is.EqualTo(1));
-            Assert.That(packCards[1], Is.EqualTo(2));
-        }
-
-        [Test]
-        public void CreateUser()
-        {
-            db.CreateUser("testuser1", "testpass1");
-            Assert.That(db.CheckUserLogin("testuser1", "wrong password"), Is.EqualTo(false));
-            Assert.That(db.CheckUserLogin("testuser1", "testpass1"), Is.EqualTo(true));
-
-            db.CreateUser("testuser2", "pass2");
-            db.GetScoreBoard(out var elos);
-
-            Console.WriteLine("Got ratings:");
-            foreach (var rating in elos)
-                Console.WriteLine($"{rating.Item1}:{rating.Item2}");
-        }
-
-        [Test]
-        public void CreatePack()
-        {
-            db.CreatePack(new Models.Card[]
+            testCards = new List<Card>()
             {
-                new Models.Card("c1", Models.Card.CardType.Monster, Models.Card.ElementType.Normal, 10),
-                new Models.Card("c2", Models.Card.CardType.Monster, Models.Card.ElementType.Normal, 20),
-                new Models.Card("c3", Models.Card.CardType.Monster, Models.Card.ElementType.Normal, 30),
-            });
-
-            db.CreatePack(new Models.Card[]
-            {
-                new Models.Card("c4", Models.Card.CardType.Monster, Models.Card.ElementType.Normal, 40),
-                new Models.Card("c5", Models.Card.CardType.Monster, Models.Card.ElementType.Normal, 50),
-            });
-
-            for (int i = 0; i < 10; i++) db.BuyPack(null);
+                new Card("m1", Card.CardType.Monster, Card.ElementType.Normal, 10),
+                new Card("m2", Card.CardType.Monster, Card.ElementType.Normal, 20),
+                new Card("m3", Card.CardType.Monster, Card.ElementType.Normal, 30),
+                new Card("m4", Card.CardType.Monster, Card.ElementType.Normal, 40)
+            };
         }
 
         [Test]
-        public void BuyPack()
+        public void TestLogin()
         {
-            var newUserName = "cardpackbuyer";
-            db.CreateUser(newUserName, "1234");
-            
-            Assert.That(db.GetUserId(newUserName, out var newUserId), Is.EqualTo(true));
+            var name = "logintest_name";
+            var password = "logintest_password";
 
-            Console.WriteLine($"new guid: {newUserId}");
-            db.BuyPack(newUserId);
+            Assert.That(db.CreateUser(name, password), Is.EqualTo(true));
+            Assert.That(db.CheckUserLogin(name, password), Is.EqualTo(true));
+            Assert.That(db.CheckUserLogin(name, "wrongpassword"), Is.EqualTo(false));
+        }
+
+        [Test]
+        public void TestDefaultScore()
+        {
+            var name = "scoretest_user";
+            var password = "scoretest_password";
+            
+            Assert.That(db.CreateUser(name, password), Is.EqualTo(true));
+            Assert.That(db.GetUserStats(name, out var stats), Is.EqualTo(true));
+            Assert.That(stats.Wins, Is.EqualTo(0));
+            Assert.That(stats.Losses, Is.EqualTo(0));
+            Assert.That(stats.Elo, Is.EqualTo(100));
+        }
+
+        [Test]
+        public void TestCreatePacks() 
+        {
+            Assert.True(db.GetPacks(out var packs1));
+
+            Assert.True(db.CreatePack(testCards.ToArray()));
+            Assert.True(db.GetPacks(out var packs2));
+            Assert.That(packs2.Length, Is.EqualTo(packs1.Length + 1));
+            
+            Assert.True(db.CreatePack(testCards.ToArray()));
+            Assert.True(db.GetPacks(out var packs3));
+            Assert.That(packs3.Length, Is.EqualTo(packs2.Length + 1));
+        }
+
+        [Test]
+        public void TestCreateDecks()
+        {
+            var name = "decktest_name";
+            Assert.True(db.CreateUser(name, "123"));
+            Assert.True(db.GetUserId(name, out var userId));
+            Assert.True(db.CreatePack(testCards.ToArray()));
+            Assert.True(db.GetPacks(out var packs));
+            Assert.True(db.BuyPack(userId, packs[0]));
+            Assert.True(db.GetUserStackCards(userId, out Card[] userCards));
+            Assert.True(db.SetDeck(userId, userCards.Select(c => c.Guid.ToString()).ToArray()));
+            Assert.True(db.GetDeck(userId, out Deck userDeck));
+        }
+
+        [Test]
+        public void TestBattleChallenge()
+        {
+            var name = "battletest_name";
+
+            Assert.True(db.CreateUser(name, "123"));
+            Assert.True(db.CreateBattleChallenge(name));
+            
+            Assert.True(db.GetBattles(out var battles));
+            Assert.True(battles.Contains(name));
+            
+            Assert.True(db.EndBattle(name));
+            Assert.True(db.GetBattles(out var modifiedBattles));
+            Assert.False(modifiedBattles.Contains(name));
+        }
+
+        [Test]
+        public void TestFriendBattleChallenge()
+        {
+            var name = "friendbattletest_name";
+            var friendName = "friendbattletest_friend_name";
+            var nonFriendName = "friendbattletest_non_friend_name";
+
+            Assert.True(db.CreateUser(name, "123"));
+            Assert.True(db.CreateUser(friendName, "123"));
+            Assert.True(db.CreateUser(nonFriendName, "123"));
+
+            Assert.True(db.AddFriend(name, friendName));
+
+            Assert.True(db.CreateBattleChallenge(friendName));
+            Assert.True(db.CreateBattleChallenge(nonFriendName));
+
+            Assert.True(db.GetBattles(out var battles));
+            Assert.True(db.GetFriendBattles(name, out var friendBattles));
+
+            Assert.That(battles.Length, Is.EqualTo(2));
+            Assert.That(friendBattles.Length, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestUserData()
+        {
+            var name = "userdatatest_name";
+
+            Assert.True(db.CreateUser(name, "123"));
+            
+            Assert.True(db.GetUserData(name, out var data));
+            Assert.That(data.Bio, Is.EqualTo(null));
+            Assert.That(data.Name, Is.EqualTo(null));
+            Assert.That(data.Image, Is.EqualTo(null));
+
+            Assert.True(db.SetUserData(name, new UserData 
+            {
+                Name = "nametest",
+                Image = "imagetest"
+            }));
+            Assert.True(db.GetUserData(name, out var modifiedData));
+            Assert.That(modifiedData.Bio, Is.EqualTo(null));
+            Assert.That(modifiedData.Name, Is.EqualTo("nametest"));
+            Assert.That(modifiedData.Image, Is.EqualTo("imagetest"));
         }
     }
 }

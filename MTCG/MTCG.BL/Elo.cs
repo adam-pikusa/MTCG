@@ -6,8 +6,10 @@ namespace MTCG.BL
     {
         public static void TransferElo(UserStats loser, UserStats winner)
         {
-            loser.Elo -= 50;
-            winner.Elo += 50;
+            if (loser.Elo >= 5) loser.Elo -= 5;
+            else loser.Elo = 0;
+
+            winner.Elo += 3;
             loser.Losses++;
             winner.Wins++;
         }

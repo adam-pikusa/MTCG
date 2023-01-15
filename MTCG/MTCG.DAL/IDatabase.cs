@@ -5,6 +5,7 @@ namespace MTCG.DAL
     public interface IDatabase
     {
         bool Init();
+        bool Clear();
         
         bool CreateUser(string username, string password);
         bool CreateUser(string userId, string username, string password);
@@ -33,7 +34,7 @@ namespace MTCG.DAL
 
         bool AddFriend(string username, string usernameFriend);
         bool RemoveFriend(string username, string usernameFriend);
-        bool GetFriendbattles(string username, out string[] usernames);
+        bool GetFriendBattles(string username, out string[] usernames);
 
         bool CreateTradeListing(string username, TradeListing listing);
         bool GetTradeListings(string username, out TradeListing[] listings);

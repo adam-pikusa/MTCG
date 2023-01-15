@@ -24,14 +24,14 @@ namespace MTCG.DAL
         IDbCommand CreateCommand(string commandText)
         {
             var command = connection.CreateCommand();
-            command.CommandText= commandText;
+            command.CommandText = commandText;
             return command;
         }
 
-        IDbDataParameter CreateStringParam(IDbCommand command, string colName, string value)
+        IDbDataParameter CreateStringParam(IDbCommand command, string colName, object value)
         {
             var result = command.CreateParameter();
-            result.DbType= DbType.String;
+            result.DbType = DbType.String;
             result.ParameterName = colName;
             result.Value = value;
             return result;
@@ -40,7 +40,7 @@ namespace MTCG.DAL
         IDbDataParameter CreateInt64Param(IDbCommand command, string colName, long value)
         {
             var result = command.CreateParameter();
-            result.DbType= DbType.Int64;
+            result.DbType = DbType.Int64;
             result.ParameterName = colName;
             result.Value = value;
             return result;
@@ -49,7 +49,7 @@ namespace MTCG.DAL
         IDbDataParameter CreateInt32Param(IDbCommand command, string colName, int value)
         {
             var result = command.CreateParameter();
-            result.DbType= DbType.Int32;
+            result.DbType = DbType.Int32;
             result.ParameterName = colName;
             result.Value = value;
             return result;
@@ -76,6 +76,23 @@ namespace MTCG.DAL
         {
             log.LogInformation("Database init");
             connection.Open();
+            return true;
+        }
+
+        public bool Clear()
+        {
+            var command = CreateCommand(
+                "TRUNCATE " +
+                "card, " +
+                "card_component, " +
+                "deck, " +
+                "marketplace_card_packs, " +
+                "user_card, " +
+                "users, friends, " +
+                "battle_challenges, " +
+                "transaction_history;");
+            command.ExecuteNonQuery();
+            log.LogInformation("cleared database tables");
             return true;
         }
 
@@ -176,9 +193,10 @@ namespace MTCG.DAL
         {
             var command = CreateCommand("UPDATE users SET profile_name=@profile_name, bio=@bio, profile_image=@profile_image WHERE username=@username;");
             command.Parameters.Add(CreateStringParam(command, "username", username));
-            command.Parameters.Add(CreateStringParam(command, "profile_name", data.Name));
-            command.Parameters.Add(CreateStringParam(command, "bio", data.Bio));
-            command.Parameters.Add(CreateStringParam(command, "profile_image", data.Image));
+            command.Parameters.Add(CreateStringParam(command, "profile_name", data.Name != null ? data.Name : DBNull.Value));
+            command.Parameters.Add(CreateStringParam(command, "bio", data.Bio != null ? data.Bio : DBNull.Value));
+            command.Parameters.Add(CreateStringParam(command, "profile_image", data.Image != null ? data.Image : DBNull.Value));
+            
             command.ExecuteNonQuery();
             return true;
         }
@@ -346,7 +364,7 @@ namespace MTCG.DAL
         public bool GetPacks(out string[] packIds)
         {
             var result = new List<string>();
-            var command = CreateCommand("SELECT pack_id FROM marketplace_card_packs;");
+            var command = CreateCommand("SELECT DISTINCT pack_id FROM marketplace_card_packs;");
             
             using (var reader = command.ExecuteReader())
                 while (reader.Read())
@@ -566,7 +584,7 @@ namespace MTCG.DAL
             return true;
         }
 
-        public bool GetFriendbattles(string username, out string[] usernames)
+        public bool GetFriendBattles(string username, out string[] usernames)
         {
             if (!GetBattles(out var allBattlers))
             {

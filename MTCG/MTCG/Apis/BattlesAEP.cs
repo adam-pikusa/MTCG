@@ -22,7 +22,7 @@ namespace MTCG.Apis
                     case "friends":
                         {
                             log.LogDebug("got request for friend battles of {0}", username);
-                            if (!Database.Instance.GetFriendbattles(username, out var friendBattles)) return HTTPHelper.Response400;
+                            if (!Database.Instance.GetFriendBattles(username, out var friendBattles)) return HTTPHelper.Response400;
                             return HTTPHelper.ResponseJson(JArray.FromObject(friendBattles).ToString());
                         }
                     default: return HTTPHelper.Response404;

@@ -704,6 +704,22 @@
           "buildTransitive/net6.0/System.Text.Json.targets": {}
         }
       },
+      "MTCG/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v6.0",
+        "dependencies": {
+          "MTCG.BL": "1.0.0",
+          "MTCG.DAL": "1.0.0",
+          "MTCG.Logging": "1.0.0",
+          "Microsoft.Extensions.Logging": "7.0.0"
+        },
+        "compile": {
+          "bin/placeholder/MTCG.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/MTCG.dll": {}
+        }
+      },
       "MTCG.BL/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v6.0",
@@ -2188,6 +2204,11 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "MTCG/1.0.0": {
+      "type": "project",
+      "path": "../MTCG/MTCG.csproj",
+      "msbuildProject": "../MTCG/MTCG.csproj"
+    },
     "MTCG.BL/1.0.0": {
       "type": "project",
       "path": "../MTCG.BL/MTCG.BL.csproj",
@@ -2211,6 +2232,7 @@
   },
   "projectFileDependencyGroups": {
     "net6.0": [
+      "MTCG >= 1.0.0",
       "MTCG.BL >= 1.0.0",
       "MTCG.DAL >= 1.0.0",
       "MTCG.Models >= 1.0.0",
@@ -2256,6 +2278,9 @@
             },
             "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Models\\MTCG.Models.csproj": {
               "projectPath": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG.Models\\MTCG.Models.csproj"
+            },
+            "D:\\fh\\swen\\MTCG\\MTCG\\MTCG\\MTCG.csproj": {
+              "projectPath": "D:\\fh\\swen\\MTCG\\MTCG\\MTCG\\MTCG.csproj"
             }
           }
         }

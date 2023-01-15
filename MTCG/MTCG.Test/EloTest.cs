@@ -5,7 +5,8 @@ namespace MTCG.Test
 {
     public class EloTest
     {
-        [TestCase(100, 100, 50, 150)]
+        [TestCase(100, 100, 95, 103)]
+        [TestCase(0, 10, 0, 13)]
         public void EloTransferTest(int a, int b, int a2, int b2)
         {
             var statsA = new UserStats { Elo = a };
