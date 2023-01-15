@@ -45,9 +45,9 @@ namespace MTCG.Apis
                 case "packages":
                     {
                         if (!Database.Instance.GetUserId(username, out var id)) return HTTPHelper.Response400;
-                        if (!Database.Instance.GetPacks(out var packs)) return HTTPHelper.Response500;
-                        if (packs.Length < 1) return HTTPHelper.Response400;
-                        if (!Database.Instance.BuyPack(id, packs[0])) return HTTPHelper.Response400;
+                        if (!Database.Instance.GetPackCards(out var packCards)) return HTTPHelper.Response500;
+                        if (packCards.Length < 1) return HTTPHelper.Response400;
+                        if (!Database.Instance.BuyPack(id, packCards[0].pack_id)) return HTTPHelper.Response400;
                         return HTTPHelper.Response200;
                     }
             }

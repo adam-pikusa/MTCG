@@ -28,6 +28,7 @@ namespace MTCG.BL
             {
                 case nameof(WeakAgainstComponent): result = new WeakAgainstComponent(); break; 
                 case nameof(ImmuneToComponent): result = new ImmuneToComponent(); break;
+                case nameof(CritComponent): result = new CritComponent(); break;
             }
 
             if (result != null) result.DeserializeFromJsonObject(componentJsonObject);

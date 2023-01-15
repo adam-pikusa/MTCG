@@ -11,26 +11,31 @@ namespace MTCG.BL
 
         static long Attack(Card attacker, Card defender)
         {
+            double critModifier = 1;
+
             foreach (var comp in attacker.Components)
             {
-                if (comp is WeakAgainstComponent)
+                if (comp is WeakAgainstComponent weakness)
                 {
-                    var weakness = (WeakAgainstComponent)comp;
-
                     if (weakness.name != null && weakness.name != defender.Name) continue;
                     if (weakness.element != null && weakness.element != defender.Element) continue;
 
                     log.LogInformation($"{attacker} is weak against {defender}! Loses!");
                     return 0;
                 }
+                
+                if (comp is CritComponent crit)
+                {
+                    if (rand.NextDouble() <= crit.chance)
+                        critModifier = 2;
+                    continue;
+                }
             }
 
             foreach (var comp in defender.Components)
             {
-                if (comp is ImmuneToComponent)
+                if (comp is ImmuneToComponent immunity)
                 {
-                    var immunity = (ImmuneToComponent)comp;
-
                     if (immunity.name != null && immunity.name != attacker.Name) continue;
                     if (immunity.element != null && immunity.element != attacker.Element) continue;
                     
@@ -39,28 +44,34 @@ namespace MTCG.BL
                 }
             }
 
-            long elementModifiedDamage = attacker.Damage;
+            double elementModifier = 1;
 
             if (attacker.Type == Card.CardType.Spell || defender.Type == Card.CardType.Spell)
                 switch (attacker.Element)
                 {
                     case Card.ElementType.Normal:
-                        if (defender.Element == Card.ElementType.Water) elementModifiedDamage *= 2;
-                        else if (defender.Element == Card.ElementType.Fire) elementModifiedDamage /= 2;
+                        if (defender.Element == Card.ElementType.Water) elementModifier = 2;
+                        else if (defender.Element == Card.ElementType.Fire) elementModifier = 0.5;
                         break;
                     case Card.ElementType.Fire:
-                        if (defender.Element == Card.ElementType.Normal) elementModifiedDamage *= 2;
-                        else if (defender.Element == Card.ElementType.Water) elementModifiedDamage /= 2;
+                        if (defender.Element == Card.ElementType.Normal) elementModifier = 2;
+                        else if (defender.Element == Card.ElementType.Water) elementModifier = .5;
                         break; 
                     case Card.ElementType.Water:
-                        if (defender.Element == Card.ElementType.Fire) elementModifiedDamage *= 2;
-                        else if (defender.Element == Card.ElementType.Normal) elementModifiedDamage /= 2;
+                        if (defender.Element == Card.ElementType.Fire) elementModifier = 2;
+                        else if (defender.Element == Card.ElementType.Normal) elementModifier = 0.5;
                         break;
                 }
 
-            log.LogInformation("Base damage {0} modified to {1} because of elemental interaction", attacker.Damage, elementModifiedDamage);
+            long resultDamage = (long)(attacker.Damage * elementModifier * critModifier);
 
-            return elementModifiedDamage;
+            log.LogInformation("Base damage {0} modified to {1} because of modifiers {2}(elemental), {3}(crit)", 
+                attacker.Damage, 
+                resultDamage, 
+                elementModifier, 
+                critModifier);
+
+            return resultDamage;
         }
 
         public static int Fight(Deck deckA, Deck deckB)

@@ -44,7 +44,7 @@ namespace MTCG.Models
 
         public override string ToString()
         {
-            var result = new StringBuilder($"[Card:{Name},{Type},{Element},{Damage},");
+            var result = new StringBuilder($"[Card:{Guid},{Name},{Type},{Element},{Damage},");
             foreach (var comp in Components) result.Append($"{comp},");
             result.Append(']');
             return result.ToString();

@@ -66,7 +66,7 @@ namespace MTCG.DAL
                 {
                     var data = reader.GetString(0);
                     result.Add(CardDeserializer.DeserializeComponent(data));
-                    log.LogDebug("deserialized card component of {0}=> {1}", cardId, result[result.Count-1]);
+                    log.LogTrace("deserialized card component of {0}=> {1}", cardId, result[result.Count-1]);
                 }
 
             return result;
@@ -337,6 +337,8 @@ namespace MTCG.DAL
 
             foreach (var card in cards)
             {
+                log.LogDebug("adding card to database: {0} ", card);
+
                 var cardGuid = card.Guid ?? Guid.NewGuid();
                 CreateCard(cardGuid.ToString(), card);
 
@@ -371,6 +373,21 @@ namespace MTCG.DAL
                     result.Add(reader.GetString(0));
 
             packIds = result.ToArray();
+            return true;
+        }
+
+        public bool GetPackCards(out (string pack_id, string card_id)[] packCards)
+        {
+            var result = new List<(string,string)>();
+            var command = CreateCommand("SELECT pack_id, card_id FROM marketplace_card_packs;");
+
+            using (var reader = command.ExecuteReader())
+                while (reader.Read())
+                    result.Add((
+                        reader.GetString(0), 
+                        reader.GetString(1)));
+
+            packCards = result.ToArray();
             return true;
         }
 
@@ -471,11 +488,9 @@ namespace MTCG.DAL
                     reader.GetInt64(4));
             }
 
-            log.LogDebug("parsed card from database: {0}\n getting components...", card);
-
             card.Components = GetCardComponents(cardId);
 
-            log.LogDebug("card with components:{0}", card);
+            log.LogDebug("got card from database:{0}", card);
 
             return true;
         }

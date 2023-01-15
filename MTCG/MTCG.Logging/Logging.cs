@@ -12,7 +12,7 @@ namespace MTCG
                 loggerFactory = LoggerFactory.Create(builder =>
                 {
                     builder
-                        .SetMinimumLevel(LogLevel.Trace)
+                        .SetMinimumLevel(LogLevel.Debug)
                         .ClearProviders()
                         .AddConsole();
                 });

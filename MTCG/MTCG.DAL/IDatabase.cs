@@ -46,6 +46,7 @@ namespace MTCG.DAL
 
         bool CreatePack(Card[] cards);
         bool GetPacks(out string[] packIds);
+        bool GetPackCards(out (string pack_id, string card_id)[] packCards);
         bool BuyPack(string userId, string packId);
     }
 }
